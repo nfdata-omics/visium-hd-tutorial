@@ -1,0 +1,23 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+numpy==2.4.6
+pandas==2.3.3
+scipy==1.17.1
+numpy==2.4.6
+pandas==2.3.3
+scipy==1.17.1
+anndata==0.12.17
+scanpy==1.11.5
+spatialdata==0.7.3
+spatialdata-io==0.7.0
+spatialdata-plot==0.4.0
+matplotlib==3.11.0
+seaborn==0.13.2
+cell2location==0.1.5
+
+prek
+ipykernel
+jupyterlab
+pip-tools
