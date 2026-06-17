@@ -4,7 +4,7 @@ USER root
 
 COPY requirements.txt /tmp/requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 RUN curl -fsSL \
     https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-x86_64 \
