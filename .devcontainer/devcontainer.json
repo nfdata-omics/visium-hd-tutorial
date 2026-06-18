@@ -1,0 +1,26 @@
+{
+  "name": "spatial-tutorial",
+  "image": "ghcr.io/nfdata-omics/visium-hd-tutorial:2026-06-17",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter"
+      ]
+    },
+    "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "jupyter.jupyterServerType": "local",
+        "terminal.integrated.defaultProfile.linux": "bash"
+    }
+  },
+
+  "remoteEnv": {
+    "DATA_DIR": "/workspaces/.scratch/visium-hd-tutorial-data",
+    "HOST_PROJECT_PATH": "/workspaces/nfdata-omics-visium-hd-tutorial",
+    "SHELL": "/bin/bash"
+  },
+
+  "postCreateCommand": "python scripts/check_environment.py"
+}
