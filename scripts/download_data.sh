@@ -6,12 +6,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CHECKSUM_FILE="$PROJECT_DIR/checksums.md5"
 
-DATASET_NAME="P5.zarr"
-ARCHIVE_NAME="${DATASET_NAME}.tar.gz"
-DOWNLOAD_URL="https://zenodo.org/records/20744512/files/${ARCHIVE_NAME}"
-
-ARCHIVE_PATH="$DATA_DIR/$ARCHIVE_NAME"
-ZARR_PATH="$DATA_DIR/$DATASET_NAME"
+BASE_URL="https://zenodo.org/records/20827863/files"
+DATASET_NAMES=(
+  "P5_crop_slide.zarr"
+  "P5_full_slide.zarr"
+)
+ARCHIVE_NAMES=(
+  "P5_crop_slide.zarr.tgz"
+  "P5_full_slide.zarr.tgz"
+)
 
 log() {
   printf '[download-data] %s\n' "$1"
@@ -30,50 +33,93 @@ mkdir -p "$DATA_DIR"
 
 step "Configuration"
 log "Data directory : $DATA_DIR"
-log "Archive        : $ARCHIVE_NAME"
-log "Zarr output    : $ZARR_PATH"
+for i in "${!DATASET_NAMES[@]}"; do
+  log "Archive        : ${ARCHIVE_NAMES[$i]}"
+  log "Zarr output    : $DATA_DIR/${DATASET_NAMES[$i]}"
+done
 
-if [[ -d "$ZARR_PATH" ]]; then
-  step "Dataset already available"
-  log "Found existing directory: $ZARR_PATH"
-  if [[ -f "$ARCHIVE_PATH" ]]; then
-    rm -f "$ARCHIVE_PATH"
-    log "Removed leftover archive: $ARCHIVE_PATH"
+all_available=true
+for i in "${!DATASET_NAMES[@]}"; do
+  zarr_path="$DATA_DIR/${DATASET_NAMES[$i]}"
+  archive_path="$DATA_DIR/${ARCHIVE_NAMES[$i]}"
+
+  if [[ -d "$zarr_path" ]]; then
+    log "Found existing directory: $zarr_path"
+    if [[ -f "$archive_path" ]]; then
+      rm -f "$archive_path"
+      log "Removed leftover archive: $archive_path"
+    fi
+  else
+    all_available=false
   fi
+done
+
+if [[ "$all_available" == true ]]; then
+  step "Datasets already available"
   log "Nothing to download or extract."
   exit 0
 fi
 
 step "Download"
-if [[ -f "$ARCHIVE_PATH" ]]; then
-  log "Found existing archive: $ARCHIVE_PATH"
-  log "Skipping download."
-else
-  log "Downloading from: $DOWNLOAD_URL"
-  wget --progress=bar:force:noscroll -O "$ARCHIVE_PATH" "$DOWNLOAD_URL"
-fi
+for i in "${!DATASET_NAMES[@]}"; do
+  zarr_path="$DATA_DIR/${DATASET_NAMES[$i]}"
+  archive_name="${ARCHIVE_NAMES[$i]}"
+  archive_path="$DATA_DIR/$archive_name"
+  download_url="$BASE_URL/$archive_name"
+
+  if [[ -d "$zarr_path" ]]; then
+    log "Skipping download; dataset already available: $zarr_path"
+  elif [[ -f "$archive_path" ]]; then
+    log "Found existing archive: $archive_path"
+    log "Skipping download."
+  else
+    log "Downloading from: $download_url"
+    wget --progress=bar:force:noscroll -O "$archive_path" "$download_url"
+  fi
+done
 
 step "Checksum"
 if [[ ! -f "$CHECKSUM_FILE" ]]; then
   fail "Checksum file not found: $CHECKSUM_FILE"
 fi
 
-(
-  cd "$DATA_DIR"
-  md5sum -c "$CHECKSUM_FILE"
-)
-log "Checksum verified."
+for archive_name in "${ARCHIVE_NAMES[@]}"; do
+  archive_path="$DATA_DIR/$archive_name"
+
+  if [[ -f "$archive_path" ]]; then
+    checksum_line="$(awk -v file="$archive_name" '$2 == file { print }' "$CHECKSUM_FILE")"
+    if [[ -z "$checksum_line" ]]; then
+      fail "Checksum not found for archive: $archive_name"
+    fi
+
+    (
+      cd "$DATA_DIR"
+      printf '%s\n' "$checksum_line" | md5sum -c -
+    )
+    log "Checksum verified: $archive_name"
+  fi
+done
 
 step "Extract"
-tar -xzf "$ARCHIVE_PATH" -C "$DATA_DIR"
+for i in "${!DATASET_NAMES[@]}"; do
+  zarr_path="$DATA_DIR/${DATASET_NAMES[$i]}"
+  archive_path="$DATA_DIR/${ARCHIVE_NAMES[$i]}"
 
-if [[ ! -d "$ZARR_PATH" ]]; then
-  fail "Extraction finished, but $ZARR_PATH was not created."
-fi
+  if [[ -d "$zarr_path" ]]; then
+    log "Skipping extraction; dataset already available: $zarr_path"
+    continue
+  fi
 
-rm -f "$ARCHIVE_PATH"
-log "Extracted zarr directory: $ZARR_PATH"
-log "Removed archive: $ARCHIVE_PATH"
+  tar -xzf "$archive_path" -C "$DATA_DIR"
+
+  if [[ ! -d "$zarr_path" ]]; then
+    fail "Extraction finished, but $zarr_path was not created."
+  fi
+
+  rm -f "$archive_path"
+  log "Extracted zarr directory: $zarr_path"
+  log "Removed archive: $archive_path"
+done
 
 step "Done"
 log "Data ready in: $DATA_DIR"
