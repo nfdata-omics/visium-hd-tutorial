@@ -2,6 +2,10 @@ FROM mcr.microsoft.com/devcontainers/python:3.12-bookworm
 
 USER root
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1=1.6* \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt /tmp/requirements.txt
 
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
