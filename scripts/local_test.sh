@@ -14,5 +14,5 @@ docker run --rm -it \
   -e DATA_DIR=/workspaces/data \
   -e HOST_PROJECT_PATH=/workspaces/nfdata-omics-visium-hd-tutorial \
   -p 8888:8888 \
-  ghcr.io/nfdata-omics/visium-hd-tutorial:2026-06-17 \
+  ghcr.io/nfdata-omics/visium-hd-tutorial:2026-06-25 \
   jupyter lab --ip=0.0.0.0 --port=8888 --no-browser

@@ -1,6 +1,6 @@
 {
   "name": "spatial-tutorial",
-  "image": "ghcr.io/nfdata-omics/visium-hd-tutorial:2026-06-17",
+  "image": "ghcr.io/nfdata-omics/visium-hd-tutorial:2026-06-25",
 
   "customizations": {
     "vscode": {
