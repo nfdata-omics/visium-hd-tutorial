@@ -190,6 +190,8 @@ idna==3.18
     #   jsonschema
     #   requests
     #   yarl
+igraph==1.0.0
+    # via leidenalg
 imagecodecs==2026.3.6
     # via spatialdata-io
 imageio==2.37.3
@@ -279,6 +281,8 @@ legacy-api-wrap==1.5
     # via
     #   anndata
     #   scanpy
+leidenalg==0.12.0
+    # via -r requirements.in
 lightning==2.6.5
     # via scvi-tools
 lightning-utilities==0.15.3
@@ -758,6 +762,8 @@ terminado==0.18.1
     # via
     #   jupyter-server
     #   jupyter-server-terminals
+texttable==1.7.0
+    # via igraph
 threadpoolctl==3.6.0
     # via scikit-learn
 tifffile==2026.6.1
