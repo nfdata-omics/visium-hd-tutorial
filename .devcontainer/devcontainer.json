@@ -7,20 +7,47 @@
       "extensions": [
         "ms-python.python",
         "ms-toolsai.jupyter"
-      ]
-    },
-    "settings": {
+      ],
+      "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "jupyter.jupyterServerType": "local",
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+
+        "python.languageServer": "None",
+        "python.analysis.indexing": false,
+        "python.analysis.autoImportCompletions": false,
+        "python.analysis.diagnosticMode": "openFilesOnly",
+
+        "files.watcherExclude": {
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/node_modules/**": true,
+          "**/.venv/**": true,
+          "**/venv/**": true,
+          "**/__pycache__/**": true,
+          "**/*.zarr/**": true,
+          "**/*.h5ad": true,
+          "**/*.parquet": true
+        },
+
+        "search.exclude": {
+          "**/.git": true,
+          "**/.venv": true,
+          "**/venv": true,
+          "**/__pycache__": true,
+          "**/*.zarr": true,
+          "**/*.h5ad": true,
+          "**/*.parquet": true
+        }
+      }
     }
   },
 
   "remoteEnv": {
-    "DATA_DIR": "/workspaces/.scratch/visium-hd-tutorial-data",
+    "DATA_DIR": "/workspaces/data",
     "HOST_PROJECT_PATH": "/workspaces/nfdata-omics-visium-hd-tutorial",
     "SHELL": "/bin/bash"
   },
 
-  "postCreateCommand": "python scripts/check_environment.py"
+  "postCreateCommand": "bash scripts/download_data.sh"
 }
