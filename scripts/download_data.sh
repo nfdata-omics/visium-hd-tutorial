@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CHECKSUM_FILE="$PROJECT_DIR/checksums.md5"
 
-BASE_URL="https://zenodo.org/records/20827863/files"
+BASE_URL="https://zenodo.org/records/20920057/files"
 DATASET_NAMES=(
   "P5_crop_slide.zarr"
   "P5_full_slide.zarr"
@@ -14,6 +14,9 @@ DATASET_NAMES=(
 ARCHIVE_NAMES=(
   "P5_crop_slide.zarr.tgz"
   "P5_full_slide.zarr.tgz"
+)
+DIRECT_FILE_NAMES=(
+  "P5_crop_nuclei_masks.tif"
 )
 
 log() {
@@ -29,6 +32,33 @@ fail() {
   exit 1
 }
 
+verify_checksum() {
+  local file_name="$1"
+  local required="${2:-true}"
+  local file_path="$DATA_DIR/$file_name"
+  local checksum_line
+
+  if [[ ! -f "$file_path" ]]; then
+    return
+  fi
+
+  checksum_line="$(awk -v file="$file_name" '$2 == file { print }' "$CHECKSUM_FILE")"
+  if [[ -z "$checksum_line" ]]; then
+    if [[ "$required" == true ]]; then
+      fail "Checksum not found for file: $file_name"
+    fi
+
+    log "Checksum not found for optional file; skipping verification: $file_name"
+    return
+  fi
+
+  (
+    cd "$DATA_DIR"
+    printf '%s\n' "$checksum_line" | md5sum -c -
+  )
+  log "Checksum verified: $file_name"
+}
+
 mkdir -p "$DATA_DIR"
 
 step "Configuration"
@@ -36,6 +66,9 @@ log "Data directory : $DATA_DIR"
 for i in "${!DATASET_NAMES[@]}"; do
   log "Archive        : ${ARCHIVE_NAMES[$i]}"
   log "Zarr output    : $DATA_DIR/${DATASET_NAMES[$i]}"
+done
+for file_name in "${DIRECT_FILE_NAMES[@]}"; do
+  log "Direct file    : $DATA_DIR/$file_name"
 done
 
 all_available=true
@@ -49,6 +82,15 @@ for i in "${!DATASET_NAMES[@]}"; do
       rm -f "$archive_path"
       log "Removed leftover archive: $archive_path"
     fi
+  else
+    all_available=false
+  fi
+done
+for file_name in "${DIRECT_FILE_NAMES[@]}"; do
+  file_path="$DATA_DIR/$file_name"
+
+  if [[ -f "$file_path" ]]; then
+    log "Found existing file: $file_path"
   else
     all_available=false
   fi
@@ -77,6 +119,17 @@ for i in "${!DATASET_NAMES[@]}"; do
     wget --progress=bar:force:noscroll -O "$archive_path" "$download_url"
   fi
 done
+for file_name in "${DIRECT_FILE_NAMES[@]}"; do
+  file_path="$DATA_DIR/$file_name"
+  download_url="$BASE_URL/$file_name"
+
+  if [[ -f "$file_path" ]]; then
+    log "Skipping download; file already available: $file_path"
+  else
+    log "Downloading from: $download_url"
+    wget --progress=bar:force:noscroll -O "$file_path" "$download_url"
+  fi
+done
 
 step "Checksum"
 if [[ ! -f "$CHECKSUM_FILE" ]]; then
@@ -84,20 +137,10 @@ if [[ ! -f "$CHECKSUM_FILE" ]]; then
 fi
 
 for archive_name in "${ARCHIVE_NAMES[@]}"; do
-  archive_path="$DATA_DIR/$archive_name"
-
-  if [[ -f "$archive_path" ]]; then
-    checksum_line="$(awk -v file="$archive_name" '$2 == file { print }' "$CHECKSUM_FILE")"
-    if [[ -z "$checksum_line" ]]; then
-      fail "Checksum not found for archive: $archive_name"
-    fi
-
-    (
-      cd "$DATA_DIR"
-      printf '%s\n' "$checksum_line" | md5sum -c -
-    )
-    log "Checksum verified: $archive_name"
-  fi
+  verify_checksum "$archive_name" true
+done
+for file_name in "${DIRECT_FILE_NAMES[@]}"; do
+  verify_checksum "$file_name" true
 done
 
 step "Extract"
