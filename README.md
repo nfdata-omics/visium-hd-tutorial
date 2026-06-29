@@ -1,4 +1,4 @@
-# Spatial Transcriptomics and Image Analysis with Visium HD
+# Spatial transcriptomics meets advanced image analysis: AI-driven integration of spatial omics data
 
 This repository contains the hands-on material for a workshop on high-resolution spatial transcriptomics and image-based analysis using 10x Genomics Visium HD data. The practicals use GitHub Codespaces, `SpatialData`, and Bin2Cell to move from Visium HD bin-level data to a cell-level matrix supported by image-derived segmentation.
 
